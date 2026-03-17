@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-gray-50 text-gray-800;
+}
+
+/* Ưu tiên font hỗ trợ tiếng Việt tốt nhất */
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;900&display=swap');
+
+body {
+  font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Đối với các thẻ hiển thị tiêu đề hoặc câu gốc */
+.font-serif {
+  /* Nếu bạn thích dùng font có chân cho sang, hãy dùng phông hỗ trợ Việt ngữ này */
+  font-family: 'Lora', serif; 
+}

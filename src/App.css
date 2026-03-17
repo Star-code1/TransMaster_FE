@@ -1,0 +1,43 @@
+/* file: index.css */
+
+/* Tái định nghĩa các class CSS */
+.lesson-card .original-text {
+  font-family: 'Times New Roman', Times, serif; /* Phông serif cho câu gốc như ảnh */
+  line-height: 1.6;
+}
+
+.check-btn {
+  transition: background-color 0.2s;
+}
+
+/* Hiệu ứng Fade in khi kết quả hiện ra */
+.result-container {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Các class cho phần detail comparison */
+.detail-item .box {
+  border: 1px solid transparent;
+}
+.detail-item .box.user-ver {
+  border-color: #fecdd3; /* Rose 200 */
+}
+.detail-item .box.suggested-ver {
+  border-color: #a7f3d0; /* Emerald 200 */
+}
+
+/* Class decoration cho "Nên dịch là" như ảnh 5 */
+.underline-offset-4 {
+  text-underline-offset: 4px;
+}
+.decoration-emerald-200 {
+  text-decoration-color: #a7f3d0;
+}
+.decoration-2 {
+  text-decoration-thickness: 2px;
+}
