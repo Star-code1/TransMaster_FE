@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 
+// Tự động lấy URL từ biến môi trường Vercel, nếu không có (local) thì dùng rỗng để chạy qua Proxy
+const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+
 const categories = [
   { id: 'all', label: 'Tất cả', icon: '🌐' },
   { id: 'business', label: 'Kinh doanh', icon: '💼' },
@@ -23,7 +26,6 @@ function App() {
   const [showConfetti, setShowConfetti] = useState(false);
   const topRef = useRef(null);
 
-  // Hàm bổ trợ để sửa lỗi font tiếng Việt
   const fixFont = (text) => {
     if (!text) return "";
     return typeof text === 'string' ? text.normalize("NFC") : text;
@@ -34,11 +36,10 @@ function App() {
     setResult(null);
     setUserTrans("");
     try {
-      const res = await fetch(`/api/question?direction=${dir}&category=${cat}`);
+      const res = await fetch(`${API_BASE_URL}/api/question?direction=${dir}&category=${cat}`);
       if (!res.ok) { setQuestion(null); return; }
       const data = await res.json();
       
-      // Sửa font cho câu hỏi
       data.content = fixFont(data.content);
       if(data.words) {
         data.words = data.words.map(w => ({...w, m: fixFont(w.m)}));
@@ -85,7 +86,7 @@ function App() {
     if (!userTrans.trim()) return;
     setLoading(true);
     try {
-      const res = await fetch('/api/grade', {
+      const res = await fetch(`${API_BASE_URL}/api/grade`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -95,8 +96,6 @@ function App() {
         })
       });
       let data = await res.json();
-      
-      // Sửa font toàn bộ object kết quả trả về từ AI
       const cleanData = JSON.parse(JSON.stringify(data).normalize("NFC"));
       setResult(cleanData);
     } catch (e) { alert("AI đang bận, thử lại sau nhé!"); }
@@ -120,7 +119,6 @@ function App() {
   return (
     <div ref={topRef} className={`min-h-screen transition-all duration-500 ${darkMode ? 'bg-slate-950' : 'bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/30'}`}>
       
-      {/* Confetti Effect */}
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
           {[...Array(50)].map((_, i) => (
@@ -137,7 +135,6 @@ function App() {
         </div>
       )}
 
-      {/* Background Decoration */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className={`absolute -top-40 -right-40 w-96 h-96 rounded-full blur-3xl ${darkMode ? 'bg-indigo-900/20' : 'bg-indigo-200/40'}`} />
         <div className={`absolute -bottom-40 -left-40 w-96 h-96 rounded-full blur-3xl ${darkMode ? 'bg-purple-900/20' : 'bg-purple-200/40'}`} />
@@ -147,7 +144,6 @@ function App() {
       <div className="relative z-10 p-4 md:p-8 lg:p-12">
         <div className="max-w-5xl mx-auto">
           
-          {/* Header */}
           <header className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
@@ -162,7 +158,6 @@ function App() {
             </div>
 
             <div className="flex items-center gap-3">
-              {/* Streak Counter */}
               {streakCount > 0 && (
                 <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl ${darkMode ? 'bg-amber-900/30 border border-amber-700/50' : 'bg-amber-50 border border-amber-200'}`}>
                   <span className="text-lg">🔥</span>
@@ -170,7 +165,6 @@ function App() {
                 </div>
               )}
               
-              {/* Dark Mode Toggle */}
               <button
                 onClick={() => setDarkMode(!darkMode)}
                 className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 ${
@@ -184,7 +178,6 @@ function App() {
             </div>
           </header>
 
-          {/* Category Pills */}
           <div className={`p-2 rounded-3xl mb-8 backdrop-blur-xl ${darkMode ? 'bg-slate-800/50 border border-slate-700/50' : 'bg-white/70 shadow-xl shadow-slate-200/50 border border-white/50'}`}>
             <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 px-1">
               {categories.map(c => (
@@ -208,7 +201,6 @@ function App() {
             </div>
           </div>
 
-          {/* Direction Toggle */}
           <div className="flex justify-center mb-10">
             <div className={`p-1.5 rounded-2xl backdrop-blur-xl ${darkMode ? 'bg-slate-800/50 border border-slate-700/50' : 'bg-white/80 shadow-xl shadow-slate-200/50 border border-white/50'}`}>
               <div className="flex gap-2">
@@ -250,19 +242,16 @@ function App() {
             </div>
           </div>
 
-          {/* Main Question Card */}
           <div className={`relative rounded-[2.5rem] p-8 md:p-12 backdrop-blur-xl transition-all duration-500 ${
             darkMode 
               ? 'bg-slate-800/50 border border-slate-700/50 shadow-2xl shadow-slate-900/50' 
               : 'bg-white/80 border border-white/50 shadow-2xl shadow-slate-200/50'
           }`}>
             
-            {/* Decorative Corner */}
             <div className="absolute top-0 right-0 w-32 h-32 overflow-hidden rounded-tr-[2.5rem]">
               <div className={`absolute -top-16 -right-16 w-32 h-32 rounded-full ${darkMode ? 'bg-indigo-600/20' : 'bg-gradient-to-br from-indigo-100 to-purple-100'}`} />
             </div>
 
-            {/* New Question Button */}
             <button 
               onClick={() => fetchQuestion()} 
               className={`absolute top-6 right-6 md:top-8 md:right-8 group flex items-center gap-2 px-5 py-2.5 rounded-2xl font-semibold text-sm transition-all duration-300 ${
@@ -275,7 +264,6 @@ function App() {
               <span className="hidden sm:inline">Câu mới</span>
             </button>
 
-            {/* Question Label & Controls */}
             <div className="flex flex-wrap items-center gap-3 mb-8">
               <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider ${
                 direction === 'zh-vi'
@@ -315,7 +303,6 @@ function App() {
               </div>
             </div>
 
-            {/* Question Content */}
             <div className="min-h-[140px] mb-10">
               {loading && !question ? (
                 <div className="flex items-center justify-center h-32">
@@ -349,8 +336,6 @@ function App() {
                         }`}>
                           {item.w}
                         </div>
-                        
-                        {/* Tooltip */}
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 hidden group-hover:block z-50 animate-in zoom-in-95 fade-in duration-200">
                           <div className={`p-5 rounded-2xl shadow-2xl min-w-[160px] text-center ${
                             darkMode ? 'bg-slate-700 border border-slate-600' : 'bg-slate-900'
@@ -381,7 +366,6 @@ function App() {
               )}
             </div>
 
-            {/* Answer Section */}
             <div className={`border-t pt-8 ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-lg">✏️</span>
@@ -436,11 +420,8 @@ function App() {
             </div>
           </div>
           
-          {/* Results Section */}
           {result && (
             <div className="mt-10 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
-              
-              {/* Score Card */}
               <div className={`relative overflow-hidden rounded-[2.5rem] p-8 md:p-10 ${
                 darkMode 
                   ? 'bg-slate-800/50 border border-slate-700/50' 
@@ -449,7 +430,6 @@ function App() {
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
                 
                 <div className="flex flex-col md:flex-row items-center gap-8">
-                  {/* Score Circle */}
                   <div className="relative">
                     <div className={`w-32 h-32 rounded-full bg-gradient-to-br ${getScoreColor(result.score)} p-1 shadow-2xl`}>
                       <div className={`w-full h-full rounded-full flex flex-col items-center justify-center ${darkMode ? 'bg-slate-800' : 'bg-white'}`}>
@@ -466,7 +446,6 @@ function App() {
                     </div>
                   </div>
                   
-                  {/* Teacher Message */}
                   <div className="flex-1 text-center md:text-left">
                     <div className="flex items-center gap-2 mb-3 justify-center md:justify-start">
                       <span className="text-2xl">👨‍🏫</span>
@@ -481,26 +460,19 @@ function App() {
                 </div>
               </div>
 
-              {/* Analysis Section */}
               {result.analysis?.length > 0 && (
                 <div className="space-y-6">
                   <div className="flex items-center gap-3 px-4">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                      darkMode ? 'bg-amber-900/30' : 'bg-amber-100'
-                    }`}>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${darkMode ? 'bg-amber-900/30' : 'bg-amber-100'}`}>
                       <span className="text-xl">💡</span>
                     </div>
                     <div>
-                      <h3 className={`font-bold ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
-                        Các điểm cần lưu ý
-                      </h3>
-                      <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                        {result.analysis.length} điểm cần cải thiện
-                      </p>
+                      <h3 className={`font-bold ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>Các điểm cần lưu ý</h3>
+                      <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{result.analysis.length} điểm cần cải thiện</p>
                     </div>
                   </div>
                   
-                  {result.analysis?.map((item, i) => (
+                  {result.analysis.map((item, i) => (
                     <div 
                       key={i} 
                       className={`rounded-[2rem] overflow-hidden transition-all duration-300 hover:scale-[1.01] ${
@@ -508,80 +480,44 @@ function App() {
                           ? 'bg-slate-800/50 border border-slate-700/50 hover:border-slate-600' 
                           : 'bg-white/80 border border-white/50 shadow-xl shadow-slate-200/30 hover:shadow-2xl'
                       }`}
-                      style={{ animationDelay: `${i * 100}ms` }}
                     >
                       <div className="p-8">
-                        {/* Original Part */}
                         <div className="flex items-center gap-3 mb-6">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
-                            darkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'
-                          }`}>
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${darkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
                             {i + 1}
                           </div>
                           <div>
-                            <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                              Cụm từ gốc
-                            </div>
-                            <div className={`text-xl font-bold font-serif ${darkMode ? 'text-slate-100' : 'text-slate-800'}`}>
-                              {fixFont(item.part)}
-                            </div>
+                            <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Cụm từ gốc</div>
+                            <div className={`text-xl font-bold font-serif ${darkMode ? 'text-slate-100' : 'text-slate-800'}`}>{fixFont(item.part)}</div>
                           </div>
                         </div>
                         
-                        {/* Comparison Grid */}
                         <div className="grid md:grid-cols-2 gap-4 mb-6">
-                          {/* User Translation */}
-                          <div className={`relative p-6 rounded-2xl ${
-                            darkMode 
-                              ? 'bg-rose-900/20 border border-rose-800/30' 
-                              : 'bg-gradient-to-br from-rose-50 to-orange-50 border border-rose-100'
-                          }`}>
+                          <div className={`relative p-6 rounded-2xl ${darkMode ? 'bg-rose-900/20 border border-rose-800/30' : 'bg-rose-50 border border-rose-100'}`}>
                             <div className="absolute -top-3 left-4">
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500 text-white">
-                                <span>✕</span> Bạn dịch
-                              </span>
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500 text-white">✕ Bạn dịch</span>
                             </div>
-                            <div className={`mt-2 text-base line-through decoration-2 ${
-                              darkMode ? 'text-rose-300 decoration-rose-500/50' : 'text-rose-600 decoration-rose-300'
-                            }`}>
+                            <div className={`mt-2 text-base line-through decoration-2 ${darkMode ? 'text-rose-300 decoration-rose-500/50' : 'text-rose-600 decoration-rose-300'}`}>
                               {fixFont(item.user_work) || "(Trống)"}
                             </div>
                           </div>
 
-                          {/* Suggested Translation */}
-                          <div className={`relative p-6 rounded-2xl ${
-                            darkMode 
-                              ? 'bg-emerald-900/20 border border-emerald-800/30' 
-                              : 'bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100'
-                          }`}>
+                          <div className={`relative p-6 rounded-2xl ${darkMode ? 'bg-emerald-900/20 border border-emerald-800/30' : 'bg-emerald-50 border border-emerald-100'}`}>
                             <div className="absolute -top-3 left-4">
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white">
-                                <span>✓</span> Nên dịch
-                              </span>
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white">✓ Nên dịch</span>
                             </div>
-                            <div className={`mt-2 text-base font-semibold ${
-                              darkMode ? 'text-emerald-300' : 'text-emerald-700'
-                            }`}>
+                            <div className={`mt-2 text-base font-semibold ${darkMode ? 'text-emerald-300' : 'text-emerald-700'}`}>
                               {fixFont(item.better_way)}
                             </div>
                           </div>
                         </div>
 
-                        {/* Explanation */}
-                        <div className={`p-6 rounded-2xl ${
-                          darkMode 
-                            ? 'bg-slate-700/30 border-l-4 border-indigo-500' 
-                            : 'bg-gradient-to-r from-indigo-50 to-purple-50 border-l-4 border-indigo-500'
-                        }`}>
+                        <div className={`p-6 rounded-2xl ${darkMode ? 'bg-slate-700/30 border-l-4 border-indigo-500' : 'bg-indigo-50 border-l-4 border-indigo-500'}`}>
                           <div className="flex items-start gap-3">
                             <span className="text-xl">📝</span>
                             <div>
-                              <div className={`text-xs font-bold uppercase tracking-wider mb-2 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
-                                Giải thích chi tiết
-                              </div>
-                              <p className={`leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-                                {fixFont(item.why)}
-                              </p>
+                              <div className={`text-xs font-bold uppercase tracking-wider mb-2 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>Giải thích chi tiết</div>
+                              <p className={`leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>{fixFont(item.why)}</p>
                             </div>
                           </div>
                         </div>
@@ -591,13 +527,12 @@ function App() {
                 </div>
               )}
 
-              {/* Try Again Button */}
               <div className="flex justify-center pt-8 pb-20">
                 <button
                   onClick={() => fetchQuestion()}
                   className={`group flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 ${
                     darkMode 
-                      ? 'bg-slate-700/50 text-slate-200 hover:bg-indigo-600 border border-slate-600 hover:border-indigo-600' 
+                      ? 'bg-slate-700/50 text-slate-200 hover:bg-indigo-600 border border-slate-600' 
                       : 'bg-white text-slate-700 hover:bg-indigo-600 hover:text-white shadow-xl hover:shadow-2xl hover:shadow-indigo-500/30'
                   }`}
                 >
@@ -610,56 +545,28 @@ function App() {
         </div>
       </div>
 
-      {/* Scroll to Top Button */}
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className={`fixed bottom-8 right-8 w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 animate-in fade-in zoom-in z-50 ${
-            darkMode 
-              ? 'bg-slate-700 text-slate-200 hover:bg-indigo-600 shadow-xl shadow-slate-900/50' 
-              : 'bg-white text-slate-600 hover:bg-indigo-600 hover:text-white shadow-xl shadow-slate-300/50'
+          className={`fixed bottom-8 right-8 w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 z-50 ${
+            darkMode ? 'bg-slate-700 text-slate-200 hover:bg-indigo-600 shadow-xl' : 'bg-white text-slate-600 hover:bg-indigo-600 hover:text-white shadow-xl'
           }`}
         >
           <span className="text-xl">↑</span>
         </button>
       )}
 
-      {/* Custom Styles */}
       <style jsx global>{`
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        
-        .bg-size-200 {
-          background-size: 200% 100%;
-        }
-        .bg-pos-0 {
-          background-position: 0% 0%;
-        }
-        .bg-pos-100 {
-          background-position: 100% 0%;
-        }
-        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .bg-size-200 { background-size: 200% 100%; }
+        .bg-pos-0 { background-position: 0% 0%; }
+        .bg-pos-100 { background-position: 100% 0%; }
         @keyframes confetti {
-          0% {
-            transform: translateY(-100vh) rotate(0deg);
-            opacity: 1;
-          }
-          100% {
-            transform: translateY(100vh) rotate(720deg);
-            opacity: 0;
-          }
+          0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
-        
-        .animate-confetti {
-          width: 10px;
-          height: 10px;
-          animation: confetti 3s ease-out forwards;
-        }
+        .animate-confetti { width: 10px; height: 10px; animation: confetti 3s ease-out forwards; }
       `}</style>
     </div>
   );
